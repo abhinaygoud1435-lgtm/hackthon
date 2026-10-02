@@ -15,7 +15,7 @@ class NativeBridge {
     }
   }
 
-  /// Read current visible screen nodes
+  /// Read current visible screen text contents
   Future<String> readScreenContent() async {
     try {
       final String? text = await _channel.invokeMethod<String>('readScreen');
@@ -24,4 +24,94 @@ class NativeBridge {
       return '';
     }
   }
+
+  /// Inspect screen nodes tree with viewIdResourceName, bounds, text, contentDescription
+  Future<List<Map<String, dynamic>>> inspectScreenNodes() async {
+    try {
+      final List<dynamic>? nodes = await _channel.invokeMethod<List<dynamic>>('inspectNodes');
+      if (nodes == null) return [];
+      return nodes.map((node) => Map<String, dynamic>.from(node as Map)).toList();
+    } on PlatformException catch (_) {
+      return [];
+    }
+  }
+
+  /// Helper to open YouTube app
+  Future<bool> openYouTube() async {
+    return executeAndroidCommand({
+      'action': 'OPEN_APP',
+      'target': 'com.google.android.youtube',
+    });
+  }
+
+  /// Helper to search YouTube
+  Future<bool> searchYouTube(String query) async {
+    return executeAndroidCommand({
+      'action': 'SEARCH_YOUTUBE',
+      'payload': {'query': query},
+    });
+  }
+
+  /// Helper to play first video in search results
+  Future<bool> playFirstVideo() async {
+    return executeAndroidCommand({
+      'action': 'PLAY_FIRST_VIDEO',
+    });
+  }
+
+  /// Helper to play video
+  Future<bool> playVideo() async {
+    return executeAndroidCommand({
+      'action': 'PLAY_VIDEO',
+    });
+  }
+
+  /// Helper to pause video
+  Future<bool> pauseVideo() async {
+    return executeAndroidCommand({
+      'action': 'PAUSE_VIDEO',
+    });
+  }
+
+  /// Helper to scroll down
+  Future<bool> scrollDown() async {
+    return executeAndroidCommand({
+      'action': 'SCROLL_DOWN',
+    });
+  }
+
+  /// Helper to scroll up
+  Future<bool> scrollUp() async {
+    return executeAndroidCommand({
+      'action': 'SCROLL_UP',
+    });
+  }
+
+  /// Helper to perform global back button action
+  Future<bool> goBack() async {
+    return executeAndroidCommand({
+      'action': 'GO_BACK',
+    });
+  }
+
+  /// Check if the Android Accessibility Service is enabled and active
+  Future<bool> isAccessibilityPermissionGranted() async {
+    try {
+      final bool? result = await _channel.invokeMethod<bool>('isAccessibilityEnabled');
+      return result ?? false;
+    } on PlatformException catch (_) {
+      return false;
+    }
+  }
+
+  /// Open Android Accessibility Settings to allow user activation
+  Future<bool> requestAccessibilityPermission() async {
+    try {
+      final bool? result = await _channel.invokeMethod<bool>('openAccessibilitySettings');
+      return result ?? false;
+    } on PlatformException catch (_) {
+      return false;
+    }
+  }
 }
+
