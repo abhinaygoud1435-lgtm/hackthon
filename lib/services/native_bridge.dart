@@ -1,6 +1,8 @@
 import 'package:flutter/services.dart';
+import '../models/ai_command.dart';
 
 /// Native Bridge for Android Accessibility and System Commands.
+
 /// Owned by AGENT 3 (agent-3-android).
 class NativeBridge {
   static const MethodChannel _channel = MethodChannel('com.mira.app/native');
@@ -94,6 +96,33 @@ class NativeBridge {
     });
   }
 
+  /// Execute a validated AICommand directly on Android native accessibility bridge
+  Future<bool> executeAICommand(AICommand command) async {
+    switch (command.intent) {
+      case CommandIntent.OPEN_APP:
+        return executeAndroidCommand({
+          'action': 'OPEN_APP',
+          'target': command.app ?? 'com.google.android.youtube',
+        });
+      case CommandIntent.SEARCH_YOUTUBE:
+        return searchYouTube(command.query ?? '');
+      case CommandIntent.PLAY_VIDEO:
+        return playFirstVideo();
+      case CommandIntent.PAUSE_VIDEO:
+        return pauseVideo();
+      case CommandIntent.SCROLL:
+        final direction = command.parameters['direction'] as String? ?? 'DOWN';
+        return direction.toUpperCase() == 'UP' ? scrollUp() : scrollDown();
+      case CommandIntent.GO_BACK:
+        return goBack();
+      case CommandIntent.READ_SCREEN:
+        final text = await readScreenContent();
+        return text.isNotEmpty;
+      default:
+        return false;
+    }
+  }
+
   /// Check if the Android Accessibility Service is enabled and active
   Future<bool> isAccessibilityPermissionGranted() async {
     try {
@@ -114,4 +143,5 @@ class NativeBridge {
     }
   }
 }
+
 
